@@ -5,4 +5,4 @@ architecture FUNCTIONAL of SYSTEM is
 begin
 
 
-d architecture;
+end architecture;
