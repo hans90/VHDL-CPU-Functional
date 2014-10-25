@@ -21,4 +21,9 @@ procedure EXEC_ADDC ( A,B      : in  data_type;
                       CI       : in  boolean := FALSE;
                       R        : out data_type;
                       Z,CO,N,O : out boolean   );
+
+procedure EXEC_SUBC ( A,B      : in  data_type;
+                      CI       : in  boolean := FALSE;
+                      R        : out data_type;
+                      Z,CO,N,O : out boolean   );
 end CPU_DEFS_PACK;

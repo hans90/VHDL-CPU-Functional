@@ -1,6 +1,6 @@
--- Testbench for ADD and ADDC Instructions.
+-- Testbench for SUB and SUBC Instructions.
 
--- This is just one TB since ADD is not implemented seperately, thus each test
+-- This is just one TB since SUB is not implemented seperately, thus each test
 -- repeats twice, once for Carry = False and once for Carry = True.
 
 -- Some simulators (like Xilinx isim) might perform some fancy optimization
@@ -13,14 +13,14 @@ use work.CPU_DEFS_PACK.all;
 
 
 
-entity INSTR_ADD_TB is
-end INSTR_ADD_TB;
+entity INSTR_SUB_TB is
+end INSTR_SUB_TB;
 
 
 
 
 
-architecture TESTBENCH of INSTR_ADD_TB is
+architecture TESTBENCH of INSTR_SUB_TB is
 begin
 
 
@@ -30,9 +30,9 @@ begin
 
 
       -- This function simplifies the testing. It pretty much just calls
-      -- EXEC_ADDC and compares the actual output values to the value they should
+      -- EXEC_SUBC and compares the actual output values to the value they should
       -- have.
-      function TEST_ADDC (
+      function TEST_SUBC (
          constant TEST_NUM    : in integer range 1 to integer'high;
          constant TEST_NAME   : in string;
          constant A, B        : in integer range 0 to (2**DATA_WIDTH)-1;
@@ -46,14 +46,14 @@ begin
          variable N_ACTUAL : boolean;
          variable O_ACTUAL : boolean;
       begin
-         -- Initialize flags with the wrong value to make sure EXEC_ADDC actually sets them correctly.
+         -- Initialize flags with the wrong value to make sure EXEC_SUBC actually sets them correctly.
          Z_ACTUAL := NOT Z;
          C_ACTUAL := NOT CO;
          N_ACTUAL := NOT N;
          O_ACTUAL := NOT O;
 
-         -- Call ADDC
-         EXEC_ADDC(A, B, CI, R_ACTUAL, Z_ACTUAL, C_ACTUAL, N_ACTUAL, O_ACTUAL);
+         -- Call SUBC
+         EXEC_SUBC(A, B, CI, R_ACTUAL, Z_ACTUAL, C_ACTUAL, N_ACTUAL, O_ACTUAL);
 
          -- Check for correct return values
          assert R_ACTUAL = R report "Test #" & integer'image(TEST_NUM) & ": " & TEST_NAME & " failed: R = " & integer'image(R_ACTUAL) & ", should be " & integer'image(R) severity ERROR;
@@ -70,7 +70,7 @@ begin
             return false;
          end if;
 
-      end TEST_ADDC;
+      end TEST_SUBC;
 
 
       -- Locally used variables
@@ -87,40 +87,40 @@ begin
       -- Good Values: Just try some values that we don't expect anything fancy to happen for.
 
       --                       #  Name                 A   B   R   CI     Z      CO     N      O
-      RES := RES AND TEST_ADDC(1, "Good Values, CI=0", 5,  3,  8,  false, false, false, false, false);
-      RES := RES AND TEST_ADDC(2, "Good Values, CI=1", 5,  3,  9,  true,  false, false, false, false);
-      RES := RES AND TEST_ADDC(3, "Good Values, CI=0", 57, 32, 89, false, false, false, false, false);
-      RES := RES AND TEST_ADDC(4, "Good Values, CI=1", 57, 32, 90, true,  false, false, false, false);
+      RES := RES AND TEST_SUBC(1, "Good Values, CI=0", 8,  5,  3,  false, false, false, false, false);
+      RES := RES AND TEST_SUBC(2, "Good Values, CI=1", 8,  5,  2,  true,  false, false, false, false);
+      RES := RES AND TEST_SUBC(3, "Good Values, CI=0", 57, 32, 25, false, false, false, false, false);
+      RES := RES AND TEST_SUBC(4, "Good Values, CI=1", 57, 32, 24, true,  false, false, false, false);
 
 
       -- Flags: Test flag generation for each flag
 
-      --                       #  Name           A   B                 R  CI     Z     CO    N      O
-      RES := RES AND TEST_ADDC(5, "Flags, CI=0", 5, (2**DATA_WIDTH)-5, 0, false, true, true, false, false);
-      RES := RES AND TEST_ADDC(6, "Flags, CI=1", 4, (2**DATA_WIDTH)-5, 0, true,  true, true, false, false);
+      --                       #  Name           A  B  R  CI     Z     CO     N      O
+      RES := RES AND TEST_SUBC(5, "Flags, CI=0", 5, 5, 0, false, true, false, false, false);
+      RES := RES AND TEST_SUBC(6, "Flags, CI=1", 6, 5, 0, true,  true, false, false, false);
 
-      --                       #  Name           A   B                  R  CI     Z      CO    N      O
-      RES := RES AND TEST_ADDC(7, "Flags, CI=0", 10, (2**DATA_WIDTH)-8, 2, false, false, true, false, false);
-      RES := RES AND TEST_ADDC(8, "Flags, CI=1", 9,  (2**DATA_WIDTH)-8, 2, true,  false, true, false, false);
+      --                       #  Name           A  B                  R  CI     Z      CO    N      O
+      RES := RES AND TEST_SUBC(7, "Flags, CI=0", 5, (2**DATA_WIDTH)-2, 7, false, false, true, false, false);
+      RES := RES AND TEST_SUBC(8, "Flags, CI=1", 6, (2**DATA_WIDTH)-2, 7, true,  false, true, false, false);
 
-      --                       #   Name           A  B                  R                  CI     Z      CO     N     O
-      RES := RES AND TEST_ADDC(9,  "Flags, CI=0", 3, (2**DATA_WIDTH)-5, (2**DATA_WIDTH)-2, false, false, false, true, false);
-      RES := RES AND TEST_ADDC(10, "Flags, CI=1", 2, (2**DATA_WIDTH)-5, (2**DATA_WIDTH)-2, true,  false, false, true, false);
+      --                       #   Name           A                  B  R                  CI     Z      CO     N     O
+      RES := RES AND TEST_SUBC(9,  "Flags, CI=0", (2**DATA_WIDTH)-3, 5, (2**DATA_WIDTH)-8, false, false, false, true, false);
+      RES := RES AND TEST_SUBC(10, "Flags, CI=1", (2**DATA_WIDTH)-2, 5, (2**DATA_WIDTH)-8, true,  false, false, true, false);
 
-      --                       #   Name           A  B                    R                  CI     Z      CO     N      O
-      RES := RES AND TEST_ADDC(11, "Flags, CI=0", 1, 2**(DATA_WIDTH-1)-1, 2**(DATA_WIDTH-1), false, false, false, false, true);
-      RES := RES AND TEST_ADDC(12, "Flags, CI=1", 0, 2**(DATA_WIDTH-1)-1, 2**(DATA_WIDTH-1), true,  false, false, false, true);
+      --                       #   Name           A                  B  R                    CI     Z      CO     N      O
+      RES := RES AND TEST_SUBC(11, "Flags, CI=0", 2**(DATA_WIDTH-1), 1, 2**(DATA_WIDTH-1)-1, false, false, false, false, true);
+      RES := RES AND TEST_SUBC(12, "Flags, CI=1", 2**(DATA_WIDTH-1), 0, 2**(DATA_WIDTH-1)-1, true,  false, false, false, true);
 
 
       -- Border Values
 
-      --                       #   Name                   A  B  R  CI     Z      CO     N      O
-      RES := RES AND TEST_ADDC(13, "Border Values, CI=0", 0, 0, 0, false, true,  false, false, false);
-      RES := RES AND TEST_ADDC(14, "Border Values, CI=1", 0, 0, 1, true,  false, false, false, false);
+      --                       #   Name                   A  B  R                  CI     Z      CO     N      O
+      RES := RES AND TEST_SUBC(13, "Border Values, CI=0", 0, 0, 0,                 false, true,  false, false, false);
+      RES := RES AND TEST_SUBC(14, "Border Values, CI=1", 0, 0, (2**DATA_WIDTH)-1, true,  false, false, true,  false);
 
-      --                       #   Name                   A                  B                  R                  CI     Z      CO    N     O
-      RES := RES AND TEST_ADDC(15, "Border Values, CI=0", (2**DATA_WIDTH)-1, (2**DATA_WIDTH)-1, (2**DATA_WIDTH)-2, false, false, true, true, false);
-      RES := RES AND TEST_ADDC(16, "Border Values, CI=1", (2**DATA_WIDTH)-1, (2**DATA_WIDTH)-1, (2**DATA_WIDTH)-1, true,  false, true, true, false);
+      --                       #   Name                   A                  B                  R                  CI     Z      CO     N      O
+      RES := RES AND TEST_SUBC(15, "Border Values, CI=0", (2**DATA_WIDTH)-1, (2**DATA_WIDTH)-1, 0,                 false, true,  false, false, false);
+      RES := RES AND TEST_SUBC(16, "Border Values, CI=1", (2**DATA_WIDTH)-1, (2**DATA_WIDTH)-1, (2**DATA_WIDTH)-1, true,  false, false, true,  false);
 
 
 
