@@ -56,6 +56,8 @@ begin
 
 
       -- Good Values: Just try some values that we don't expect anything fancy to happen for.
+
+      --               #  Name                 A   B   R   CI     Z      CO     N      O
       RES := TEST_ADDC(1, "Good Values, CI=0", 5,  3,  8,  false, false, false, false, false);
       RES := TEST_ADDC(2, "Good Values, CI=1", 5,  3,  9,  true,  false, false, false, false);
       RES := TEST_ADDC(3, "Good Values, CI=0", 57, 32, 89, false, false, false, false, false);
@@ -63,17 +65,34 @@ begin
 
 
       -- Flags: Test flag generation for each flag
+
+      --               #  Name           A   B                 R  CI     Z     CO    N      O
       RES := TEST_ADDC(5, "Flags, CI=0", 5, (2**DATA_WIDTH)-5, 0, false, true, true, false, false);
       RES := TEST_ADDC(6, "Flags, CI=1", 4, (2**DATA_WIDTH)-5, 0, true,  true, true, false, false);
 
+      --               #  Name           A   B                  R  CI     Z      CO    N      O
       RES := TEST_ADDC(7, "Flags, CI=0", 10, (2**DATA_WIDTH)-8, 2, false, false, true, false, false);
       RES := TEST_ADDC(8, "Flags, CI=1", 9,  (2**DATA_WIDTH)-8, 2, true,  false, true, false, false);
 
+      --               #   Name           A  B                  R                  CI     Z      CO     N     O
       RES := TEST_ADDC(9,  "Flags, CI=0", 3, (2**DATA_WIDTH)-5, (2**DATA_WIDTH)-2, false, false, false, true, false);
       RES := TEST_ADDC(10, "Flags, CI=1", 2, (2**DATA_WIDTH)-5, (2**DATA_WIDTH)-2, true,  false, false, true, false);
 
+      --               #   Name           A  B                    R                  CI     Z      CO     N      O
       RES := TEST_ADDC(11, "Flags, CI=0", 1, 2**(DATA_WIDTH-1)-1, 2**(DATA_WIDTH-1), false, false, false, false, true);
       RES := TEST_ADDC(12, "Flags, CI=1", 0, 2**(DATA_WIDTH-1)-1, 2**(DATA_WIDTH-1), true,  false, false, false, true);
+
+
+      -- Border Values
+
+      --               #   Name                   A  B  R  CI     Z      CO     N      O
+      RES := TEST_ADDC(13, "Border Values, CI=0", 0, 0, 0, false, true,  false, false, false);
+      RES := TEST_ADDC(14, "Border Values, CI=1", 0, 0, 1, true,  false, false, false, false);
+
+      --               #   Name                   A                  B                  R                  CI     Z      CO    N     O
+      RES := TEST_ADDC(15, "Border Values, CI=0", (2**DATA_WIDTH)-1, (2**DATA_WIDTH)-1, (2**DATA_WIDTH)-2, false, false, true, true, false);
+      RES := TEST_ADDC(16, "Border Values, CI=1", (2**DATA_WIDTH)-1, (2**DATA_WIDTH)-1, (2**DATA_WIDTH)-1, true,  false, true, true, false);
+
 
       assert FALSE report "Tests completed, see above for errors" severity NOTE;
 
