@@ -27,7 +27,6 @@ package CPU_DEFS_PACK is
    constant code_stop : opcode_type:= 1;       -- 3.5.2
 
 
-
    -----------------------------------------------------
    --
    -- BIT SHIFT/ROTATIONs
@@ -70,6 +69,38 @@ package CPU_DEFS_PACK is
                          CI       : in  boolean;
                          R        : out data_type;
                          Z,CO,N,O : out boolean   );
+
+	-- Logical Instructions
+	-----------------------
+
+	procedure EXEC_NOT  ( A        : in  DATA_TYPE;
+								 R		 	 : out DATA_TYPE;
+								 Z,CO,N,O : out BOOLEAN );
+
+	procedure EXEC_AND  ( A,B      : in  DATA_TYPE;
+								 R		 	 : out DATA_TYPE;
+								 Z,CO,N,O : out BOOLEAN );
+
+	procedure EXEC_OR   ( A,B      : in  DATA_TYPE;
+								 R		 	 : out DATA_TYPE;
+								 Z,CO,N,O : out BOOLEAN );
+
+	procedure EXEC_XOR  ( A,B      : in  DATA_TYPE;
+								 R		 	 : out DATA_TYPE;
+								 Z,CO,N,O : out BOOLEAN );
+
+	-- Reduced AND
+	procedure EXEC_REA  ( A        : in  DATA_TYPE;
+								 R		 	 : out DATA_TYPE;
+								 Z,CO,N,O : out BOOLEAN );
+   -- Reduced OR
+	procedure EXEC_REO  ( A        : in  DATA_TYPE;
+								 R		 	 : out DATA_TYPE;
+								 Z,CO,N,O : out BOOLEAN );
+   -- Reduced Exclusive-OR
+	procedure EXEC_REX  ( A        : in  DATA_TYPE;
+								 R		 	 : out DATA_TYPE;
+								 Z,CO,N,O : out BOOLEAN );
 
 
 end CPU_DEFS_PACK;

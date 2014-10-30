@@ -9,7 +9,6 @@ use IEEE.numeric_std.all;
 package body CPU_DEFS_PACK is
 
 
-
    -----------------------------------------------------
    --
    -- BIT SHIFT/ROTATIONs
@@ -309,7 +308,320 @@ package body CPU_DEFS_PACK is
 
    end procedure; -- Julian Leyh
 
+   -- Logical Instructions
+   -----------------------
+  
+   -- NOT (OpCode 6) -> 3.3.1.7
+   procedure EXEC_NOT ( A           : in  DATA_TYPE;
+                        R           : out DATA_TYPE;
+                        Z, CO, N, O : out BOOLEAN    ) is
+      
+      begin
+        
+        R := -A -1 + 2**data_width;
+        
+        -- Check & Assign Zero Flag (3.2.4)
+        if A mod 2**data_width = 0 then 
+          Z := true;
+        else
+          Z := false;
+        end if;
+        
+        CO := false;  -- 3.2.5.1
+        
+        -- Check if Result is Negative (3.2.6.2)
+        if A >= 2**(data_width-1)  then
+          N := false;
+        else
+          N := true;
+        end if;
+        
+        O := false; -- 3.2.7.3
+      
+   end EXEC_NOT; -- Johannes L.
+  
+   -- AND (OpCode 7) -> 3.3.1.8
+   procedure EXEC_AND ( A, B       : in  DATA_TYPE;
+                       R           : out DATA_TYPE;
+                       Z, CO, N, O : out BOOLEAN    ) is
+      
+		variable R_tmp : DATA_TYPE := 0;
+		variable A_tmp : DATA_TYPE := A;
+		variable B_tmp : DATA_TYPE := B;
+		
+		begin
+		
+		-- Slide 56 lecture
+		for i in 0 to data_width loop
+			R_tmp := R_tmp + 2**i * ( A_tmp mod 2 ) * ( B_tmp mod 2 );
+			A_tmp := A_tmp / 2; -- >>
+			B_tmp := B_tmp / 2; -- >>
+		end loop;
 
+      -- Check & Assign Zero Flag (3.2.4)
+      if R_tmp mod 2**data_width = 0 then 
+          Z := true;
+      else
+          Z := false;
+      end if;
+      
+      CO := false; -- 3.2.5.1
+      
+       -- Check for negative Result (3.2.6.2)
+      if R_tmp >= 2**(data_width-1) then
+          N := true;
+      else
+          N := false;
+      end if;
+      
+		O := false; -- 3.2.7.3
+
+		R := R_tmp;
+      
+   end EXEC_AND; -- Johannes L.
+
+   -- OR (OpCode 8) -> 3.3.1.9
+   procedure EXEC_OR ( A, B        : in  DATA_TYPE;
+                       R           : out DATA_TYPE;
+                       Z, CO, N, O : out BOOLEAN    ) is
+      
+		variable R_tmp : DATA_TYPE := 0;
+		variable A_tmp : DATA_TYPE := A;
+		variable B_tmp : DATA_TYPE := B;
+		
+		begin
+		
+		-- Manual OR
+		for i in 0 to data_width loop
+			if ((A_tmp mod 2) = 1) OR ((B_tmp mod 2) = 1) then
+				R_tmp := R_tmp + 2**i;
+			end if;
+			A_tmp := A_tmp / 2; -- >>
+			B_tmp := B_tmp / 2; -- >>
+		end loop;
+
+      -- Check & Assign Zero Flag (3.2.4)
+      if R_tmp mod 2**data_width = 0 then 
+          Z := true;
+      else
+          Z := false;
+      end if;
+      
+      CO := false; -- 3.2.5.1
+      
+       -- Check for negative Result (3.2.6.2)
+      if R_tmp >= 2**(data_width-1) then
+          N := true;
+      else
+          N := false;
+      end if;
+      
+		O := false; -- 3.2.7.3
+
+		R := R_tmp;
+      
+   end EXEC_OR; -- Johannes L.
+
+
+   -- XOR (OpCode 9) -> 3.3.1.10
+   procedure EXEC_XOR ( A, B        : in  DATA_TYPE;
+                       R           : out DATA_TYPE;
+                       Z, CO, N, O : out BOOLEAN    ) is
+      
+		variable R_tmp : DATA_TYPE := 0;
+		variable A_tmp : DATA_TYPE := A;
+		variable B_tmp : DATA_TYPE := B;
+		
+		begin
+		
+		-- Manual XOR
+		for i in 0 to data_width loop
+			if ((A_tmp mod 2) = 1) XOR ((B_tmp mod 2) = 1) then
+				R_tmp := R_tmp + 2**i;
+			end if;
+			A_tmp := A_tmp / 2; -- >>
+			B_tmp := B_tmp / 2; -- >>
+		end loop;
+
+      -- Check & Assign Zero Flag (3.2.4)
+      if R_tmp mod 2**data_width = 0 then 
+          Z := true;
+      else
+          Z := false;
+      end if;
+      
+      CO := false; -- 3.2.5.1
+      
+       -- Check for negative Result (3.2.6.2)
+      if R_tmp >= 2**(data_width-1) then
+          N := true;
+      else
+          N := false;
+      end if;
+      
+		O := false; -- 3.2.7.3
+
+		R := R_tmp;
+      
+   end EXEC_XOR; -- Johannes L.
+
+   -- REA (OpCode 10) -> 3.3.1.11
+   procedure EXEC_REA ( A          : in  DATA_TYPE;
+                       R           : out DATA_TYPE;
+                       Z, CO, N, O : out BOOLEAN    ) is
+		
+		variable R_tmp : DATA_TYPE := 0;
+
+		begin
+		
+		-- Reduced AND ?!
+		-- i.e. check for all bits set '1'
+		if A = 2**data_width - 1 then -- xFFF
+			-- Assign LSB = 1
+			if (A mod 2) = 0 then
+				R_tmp := A + 1;
+			else
+				R_tmp := A;
+			end if;
+		else
+			-- Assign LSB = 0
+			if (A mod 2) = 0 then
+				R_tmp := A;
+			else
+				R_tmp := A - 1;
+			end if;
+		end if;
+		
+
+      -- Check Result & Assign Zero Flag (3.2.4)
+      if R_tmp mod 2**data_width = 0 then 
+          Z := true;
+      else
+          Z := false;
+      end if;
+      
+      CO := false; -- 3.2.5.1
+      
+       -- Check for negative Result (3.2.6.2)
+      if R_tmp >= 2**(data_width-1) then
+          N := true;
+      else
+          N := false;
+      end if;
+      
+		O := false; -- 3.2.7.3
+
+		R := R_tmp;
+      
+   end EXEC_REA; -- Johannes L.
+	
+	-- REO (OpCode 11) -> 3.3.1.12
+   procedure EXEC_REO ( A          : in  DATA_TYPE;
+                       R           : out DATA_TYPE;
+                       Z, CO, N, O : out BOOLEAN    ) is
+		
+		variable R_tmp : DATA_TYPE := 0;
+		variable A_tmp : DATA_TYPE := A;
+
+		begin
+
+		-- Assign LSB = 0
+		if (A mod 2) = 0 then
+			R_tmp := A;
+		else
+			R_tmp := A - 1;
+		end if;
+
+		-- Reduced OR Operation
+		-- i.e. check if >= one bit is set '1'
+		for i in 0 to data_width loop
+			if (A_tmp mod 2) = 1 then
+				R_tmp := A + 1; -- Set LSB '1'
+				exit;           -- Reduced OR evaluates to true anyways
+			end if;
+			A_tmp := A_tmp / 2; -- >>
+		end loop;
+		
+
+      -- Check Result & Assign Zero Flag (3.2.4)
+      if R_tmp mod 2**data_width = 0 then 
+          Z := true;
+      else
+          Z := false;
+      end if;
+      
+      CO := false; -- 3.2.5.1
+      
+       -- Check for negative Result (3.2.6.2)
+      if R_tmp >= 2**(data_width-1) then
+          N := true;
+      else
+          N := false;
+      end if;
+      
+		O := false; -- 3.2.7.3
+
+		R := R_tmp;
+      
+   end EXEC_REO; -- Johannes L.
+
+	-- REX (OpCode 12) -> 3.3.1.13
+   procedure EXEC_REX ( A          : in  DATA_TYPE;
+                       R           : out DATA_TYPE;
+                       Z, CO, N, O : out BOOLEAN    ) is
+		
+		variable R_tmp : DATA_TYPE := 0;
+		variable A_tmp : DATA_TYPE := A;
+		variable parity : integer := 0;
+
+		begin
+
+		-- Reduced XOR Operation
+		-- i.e. count ones (comp. even parity bit)
+		for i in 0 to data_width loop
+			if (A_tmp mod 2) = 1 then
+				parity := parity + 1;
+			end if;
+			A_tmp := A_tmp / 2; -- >>
+		end loop;
+		
+		if (parity mod 2) = 1 then
+			-- Assign LSB = 1
+			if (A mod 2) = 0 then
+				R_tmp := A + 1;
+			else
+				R_tmp := A;
+			end if;
+		else
+			-- Assign LSB = 0
+			if (A mod 2) = 0 then
+				R_tmp := A;
+			else
+				R_tmp := A - 1;
+			end if;
+		end if;
+
+      -- Check Result & Assign Zero Flag (3.2.4)
+      if R_tmp mod 2**data_width = 0 then 
+          Z := true;
+      else
+          Z := false;
+      end if;
+      
+      CO := false; -- 3.2.5.1
+      
+       -- Check for negative Result (3.2.6.2)
+      if R_tmp >= 2**(data_width-1) then
+          N := true;
+      else
+          N := false;
+      end if;
+      
+		O := false; -- 3.2.7.3
+
+		R := R_tmp;
+      
+   end EXEC_REX; -- Johannes L.
 
 end CPU_DEFS_PACK;
 
